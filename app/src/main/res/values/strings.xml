@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PulseBoost</string>
+    <string name="publisher_name">astromg01</string>
+    <string name="session_channel_name">Sessão de jogo</string>
+    <string name="source_repository">https://github.com/astromg01/PulseBoost</string>
+</resources>

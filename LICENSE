@@ -1,0 +1,28 @@
+PulseBoost — All Rights Reserved
+
+Copyright (c) 2026 astromg01. All rights reserved.
+
+No license or permission is granted to use, copy, modify, merge, publish,
+distribute, sublicense, sell, reverse engineer, or create derivative works
+from the original PulseBoost source code, except where applicable law or a
+separate written agreement with the copyright holder expressly permits it.
+
+The source is publicly visible for transparency and review. Public visibility
+does not grant permission for reuse or redistribution. Any limited permission
+required by GitHub's Terms of Service to host, view, and fork the repository on
+that platform does not grant a broader license to the source code.
+
+End users may install and run unmodified official PulseBoost binary releases
+for personal, non-commercial use. This limited permission does not authorize
+redistribution, resale, modification, impersonation of an official release, or
+use of the source code to create another product.
+
+Third-party components bundled in vendor/ remain governed by their respective
+licenses listed in THIRD_PARTY_NOTICES.md. This notice does not restrict rights
+granted independently by those third-party licenses.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING
+FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR ITS USE.

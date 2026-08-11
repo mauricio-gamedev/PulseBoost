@@ -1,0 +1,10 @@
+build/
+dist/
+keystore/
+*.jks
+*.keystore
+*.idsig
+*.properties
+*.env
+.env*
+*.log
