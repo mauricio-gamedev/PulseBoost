@@ -39,6 +39,12 @@ jobs:
           test -s site/assets/mio-character.webp
           test -s site/assets/miojo-seal-static.png
 
+          # Embed the official character directly in CSS so the browser never
+          # depends on a separate image request/path to render Mio.
+          MIO_B64="$(base64 -w0 site/assets/mio-character.webp)"
+          printf '.mio-character-inline{background-image:url("data:image/webp;base64,%s")}' "$MIO_B64" > site/mio-asset.css
+          test -s site/mio-asset.css
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
