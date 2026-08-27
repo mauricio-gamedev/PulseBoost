@@ -6,6 +6,7 @@ final class AdaptiveEngine {
     static final class Plan {
         final String title;
         final String detail;
+        final String reportDetail;
         final boolean adaptive;
         final boolean trimCache;
         final boolean disableSaver;
@@ -16,6 +17,7 @@ final class AdaptiveEngine {
         Plan(
                 String title,
                 String detail,
+                String reportDetail,
                 boolean adaptive,
                 boolean trimCache,
                 boolean disableSaver,
@@ -24,6 +26,7 @@ final class AdaptiveEngine {
                 boolean animations) {
             this.title = title;
             this.detail = detail;
+            this.reportDetail = reportDetail;
             this.adaptive = adaptive;
             this.trimCache = trimCache;
             this.disableSaver = disableSaver;
@@ -33,7 +36,7 @@ final class AdaptiveEngine {
         }
 
         String summary() {
-            return title + " • " + detail;
+            return title + " • " + reportDetail;
         }
     }
 
@@ -42,9 +45,17 @@ final class AdaptiveEngine {
 
     static Plan decide(DeviceStats stats, Optimizer.Options options) {
         if (!options.adaptive) {
+            OptimizationAdvisor.Explanation explanation = OptimizationAdvisor.explain(
+                    stats,
+                    options,
+                    false,
+                    options.trimCache,
+                    options.disableSaver,
+                    options.gameMode ? "performance" : null);
             return new Plan(
                     "Potência manual",
-                    "Usando exatamente as opções escolhidas",
+                    explanation.uiDetail,
+                    explanation.reportDetail,
                     false,
                     options.trimCache,
                     options.disableSaver,
@@ -97,9 +108,17 @@ final class AdaptiveEngine {
         }
 
         boolean shouldTrim = options.trimCache && memoryPressure;
+        OptimizationAdvisor.Explanation explanation = OptimizationAdvisor.explain(
+                stats,
+                options,
+                true,
+                shouldTrim,
+                disableSaver,
+                gameMode);
         return new Plan(
                 title,
-                detail,
+                explanation.uiDetail,
+                explanation.reportDetail,
                 true,
                 shouldTrim,
                 disableSaver,
