@@ -39,10 +39,17 @@ jobs:
           test -s site/assets/mio-character.webp
           test -s site/assets/miojo-seal-static.png
 
-          # Embed the official character directly in CSS so the browser never
-          # depends on a separate image request/path to render Mio.
+          # Embed the official character in CSS. This avoids a second browser
+          # request and removes path/cache failures that hid Mio on mobile.
           MIO_B64="$(base64 -w0 site/assets/mio-character.webp)"
-          printf '.mio-character-inline{background-image:url("data:image/webp;base64,%s")}' "$MIO_B64" > site/mio-asset.css
+          cat > site/mio-asset.css <<EOF
+          .mio-character-inline{position:relative;z-index:2;align-self:end;width:88%;height:380px;background-image:url("data:image/webp;base64,$MIO_B64");background-repeat:no-repeat;background-position:center bottom;background-size:contain;filter:drop-shadow(0 18px 26px rgba(0,0,0,.55))}
+          .store-intro-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:34px;align-items:center}
+          .store-mio-compact{min-height:320px}
+          .store-mio-compact .mio-character-inline{height:290px}
+          @media(max-width:860px){.mio-character-inline{height:305px}.store-intro-grid{grid-template-columns:1fr;gap:22px}.store-mio-compact{min-height:280px}.store-mio-compact .mio-character-inline{height:255px}}
+          @media(max-width:600px){.mio-character-inline{width:94%;height:245px}.store-mio-compact{min-height:250px}.store-mio-compact .mio-character-inline{height:225px}}
+          EOF
           test -s site/mio-asset.css
 
       - name: Configure Pages
