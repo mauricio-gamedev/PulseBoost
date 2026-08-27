@@ -25,6 +25,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Bundle official Mio assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p site/assets
+          curl --fail --location --retry 3 \
+            https://raw.githubusercontent.com/mauricio-gamedev/dc-bot/main/assets/mio-character.webp \
+            --output site/assets/mio-character.webp
+          curl --fail --location --retry 3 \
+            https://raw.githubusercontent.com/mauricio-gamedev/dc-bot/main/assets/miojo-seal-static.png \
+            --output site/assets/miojo-seal-static.png
+          test -s site/assets/mio-character.webp
+          test -s site/assets/miojo-seal-static.png
+
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
