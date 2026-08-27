@@ -10,6 +10,86 @@ permissions:
   contents: read
 
 jobs:
+  validate-site:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate required site files
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in \
+            site/index.html \
+            site/store.html \
+            site/pulseboost.html \
+            site/privacy.html \
+            site/terms.html \
+            site/styles.css \
+            site/v2.css \
+            site/app.js \
+            wrangler.jsonc; do
+            test -s "$file"
+          done
+
+      - name: Validate local HTML links
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          from urllib.parse import urlparse
+
+          root = Path('site')
+          html_files = sorted(root.glob('*.html'))
+          errors = []
+
+          class Links(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.links = []
+              def handle_starttag(self, tag, attrs):
+                  data = dict(attrs)
+                  if tag in {'a', 'link', 'script'}:
+                      value = data.get('href') or data.get('src')
+                      if value:
+                          self.links.append(value)
+
+          for page in html_files:
+              parser = Links()
+              parser.feed(page.read_text(encoding='utf-8'))
+              for link in parser.links:
+                  if link.startswith(('#', 'mailto:', 'tel:', 'data:')):
+                      continue
+                  parsed = urlparse(link)
+                  if parsed.scheme or parsed.netloc:
+                      continue
+                  target = (page.parent / parsed.path).resolve()
+                  if parsed.path and not target.exists():
+                      errors.append(f'{page}: link local ausente: {link}')
+
+          if errors:
+              raise SystemExit('\n'.join(errors))
+          print(f'Validated {len(html_files)} HTML pages with no broken local links.')
+          PY
+
+      - name: Validate Cloudflare static assets config
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          raw = Path('wrangler.jsonc').read_text(encoding='utf-8')
+          config = json.loads(raw)
+          assert config['name'] == 'miojoplays'
+          assert config['assets']['directory'] == './site'
+          print('Cloudflare static assets config OK.')
+          PY
+
   build-android:
     runs-on: ubuntu-latest
     timeout-minutes: 20
