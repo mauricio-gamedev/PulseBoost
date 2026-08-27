@@ -1,0 +1,59 @@
+name: Validate PulseBoost
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android platform and build tools
+        shell: bash
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platforms;android-36" "build-tools;36.1.0"
+
+      - name: Verify vendored dependencies
+        shell: bash
+        run: |
+          cd vendor
+          sha256sum -c CHECKSUMS.sha256
+
+      - name: Build unsigned APK
+        shell: bash
+        env:
+          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
+        run: ./build.sh
+
+      - name: Verify output
+        shell: bash
+        run: |
+          test -s dist/PulseBoost-v0.3.1-beta-unsigned.apk
+          sha256sum dist/PulseBoost-v0.3.1-beta-unsigned.apk
+
+      - name: Upload unsigned APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: PulseBoost-unsigned
+          path: dist/PulseBoost-v0.3.1-beta-unsigned.apk
+          if-no-files-found: error
