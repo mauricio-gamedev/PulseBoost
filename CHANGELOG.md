@@ -1,5 +1,14 @@
 # Histórico de versões
 
+## Próxima versão — fundação de produto
+
+- nova camada `OptimizationAdvisor` transforma decisões técnicas em explicações auditáveis;
+- perfil recomendado agora informa o motivo da decisão e a principal ação prevista;
+- relatório da sessão passa a registrar ações previstas, impacto esperado, risco e política de reversão;
+- nenhuma nova permissão, comando Shizuku, alteração térmica, driver, arquivo de jogo ou acesso à internet foi adicionado;
+- CI Android adicionada para compilar e validar um APK não assinado em cada pull request antes do merge;
+- início da transformação do PulseBoost em utilitário gamer distribuível, mantendo promessas técnicas conservadoras e reversibilidade como requisito.
+
 ## 0.3.1 beta — 2026-08-11
 
 - identidade pública migrada para `io.github.astromg01.pulseboost` antes de uma futura Play Store;
