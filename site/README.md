@@ -4,6 +4,16 @@ Site estático mobile-first da loja digital MiojoPlays.
 
 A loja é uma plataforma de múltiplos produtos. PulseBoost é apenas um item do catálogo e não define a identidade, a navegação ou a arquitetura do site.
 
+## Arquitetura visual
+
+A experiência é organizada em três camadas claras:
+
+1. **Interface** — topbar, navegação lateral no desktop e dock inferior no mobile.
+2. **Miolo / Store Hub** — descoberta, categorias, status do ecossistema, atalhos e destaques.
+3. **Loja / Catálogo** — busca, filtros, cards de produto e acesso às páginas comerciais.
+
+Isso evita que a home seja apenas uma sequência de textos e cards. O usuário entra numa interface de loja, entende o ecossistema e só então navega para a camada comercial.
+
 ## Objetivos
 
 - funcionar bem em celular;
@@ -16,27 +26,24 @@ A loja é uma plataforma de múltiplos produtos. PulseBoost é apenas um item do
 
 ## Estrutura
 
-- `index.html` — home institucional e entrada do catálogo;
-- `store.html` — catálogo geral e filtros;
-- `pulseboost.html` — página de produto do PulseBoost;
+- `index.html` — Store Hub / visão geral;
+- `store.html` — camada comercial com catálogo, busca e filtros;
+- `pulseboost.html` — página do PulseBoost;
 - futuras páginas `<produto>.html` — páginas independentes dos próximos itens;
 - `privacy.html` — política inicial de privacidade;
 - `terms.html` — termos iniciais;
-- `styles.css`, `v2.css`, `shop-v4.css` — layout e responsividade;
-- `app.js` — menu mobile, filtros, ano e animações leves;
+- `styles.css`, `v2.css`, `shop-v4.css`, `shop-v5.css` — base visual, catálogo e shell estrutural;
+- `app.js` — menu mobile, filtros com deep links, ano e animações leves;
 - `favicon.svg` — ícone local.
 
 ## Publicação
 
-A pasta `site/` é o diretório de publicação estática. O nome do projeto de hospedagem deve representar a loja, não um produto específico.
-
-Se o projeto Cloudflare Pages atual usa um subdomínio `*.pages.dev` baseado em PulseBoost, o endereço deve ser substituído por um novo projeto Pages com nome curto e neutro de loja. O conteúdo continua vindo deste repositório enquanto a loja não for separada em repositório próprio.
+A pasta `site/` é o diretório de publicação estática. O projeto Cloudflare Worker que serve a loja deve usar nome e subdomínio neutros, sem referência a um produto específico.
 
 ## Próximas etapas
 
-1. publicar a home e catálogo multi-produto;
-2. trocar o endereço de produção por um nome curto e neutro;
+1. manter a identidade visual e navegação consistentes nas páginas de produto;
+2. adicionar novos produtos como páginas independentes;
 3. separar a loja em repositório próprio quando o fluxo permitir;
-4. adicionar novos produtos como páginas independentes;
-5. conectar checkout somente depois de definir produto, preço, licença, entrega e política de reembolso;
-6. adicionar métricas apenas com política de privacidade atualizada.
+4. conectar checkout somente depois de definir produto, preço, licença, entrega e política de reembolso;
+5. adicionar métricas apenas com política de privacidade atualizada.
