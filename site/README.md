@@ -1,53 +1,67 @@
 # MiojoPlays Store — Site
 
-Site estático mobile-first da loja digital MiojoPlays.
+Site estático mobile-first da loja digital gamer MiojoPlays.
 
-A loja é uma plataforma de múltiplos produtos. PulseBoost é apenas um item do catálogo e não define a identidade, a navegação ou a arquitetura do site.
+A loja é uma plataforma de múltiplos produtos. PulseBoost continua como produto próprio, mas não define a identidade nem o catálogo principal da loja.
 
 ## Arquitetura de páginas
 
-Cada aba possui um assunto próprio. Conteúdo de uma área não deve ser despejado em outra página.
+Cada área possui assunto próprio:
 
-- `index.html` — **Início**: apresentação da marca, informações iniciais e orientação de navegação;
-- `store.html` — **Loja**: catálogo comercial geral, busca, status, preço, versão e acesso aos produtos;
-- `categorias.html` — **Categorias**: organização do catálogo e entrada para cada área;
-- `apps.html` — **Apps**: somente aplicativos e informações relacionadas a apps;
-- `ferramentas.html` — **Ferramentas**: somente utilitários, diagnóstico e ferramentas técnicas;
-- `packs.html` — **Packs / Game Kits**: somente packs, presets, perfis e conteúdo específico;
-- `suporte.html` — **Suporte**: bugs, download, compatibilidade, atualizações e políticas;
-- `pulseboost.html` — página individual de produto do PulseBoost;
-- futuras páginas `<produto>.html` — páginas independentes para cada novo produto;
+- `index.html` — **Início**: apresentação, destaques e entrada para o catálogo;
+- `store.html` — **Loja**: catálogo geral e busca;
+- `categorias.html` — **Categorias**: mapa das famílias de produto;
+- `recargas.html` — **Recargas**: créditos e recargas gamer;
+- `giftcards.html` — **Gift Cards**: cartões-presente digitais;
+- `assinaturas.html` — **Assinaturas**: planos e acessos digitais autorizados;
+- `jogos.html` — **Jogos & Keys**: jogos, DLCs, expansões e passes com origem autorizada;
+- `miojoplays.html` — **Produtos MiojoPlays**: apps, ferramentas e conteúdo desenvolvido pela própria MiojoPlays;
+- `apps.html`, `ferramentas.html` e `packs.html` — subáreas dos produtos MiojoPlays;
+- `pulseboost.html` — página individual do PulseBoost;
+- `suporte.html` — suporte técnico, downloads, compatibilidade e futuros pedidos digitais;
 - `privacy.html` e `terms.html` — páginas legais.
 
-## Princípio de navegação
+## Catálogo de revenda
 
-A interface é compartilhada, mas o conteúdo é separado por contexto:
+As categorias externas são preparadas no frontend, mas não publicam marcas, valores, estoque ou promessas de entrega sem fornecedor autorizado e disponibilidade confirmada.
 
-1. **Início** apresenta a loja;
-2. **Loja** concentra a área comercial;
-3. **Categorias** organiza as famílias de produto;
-4. **Apps / Ferramentas / Packs** mostram apenas itens e informações daquela família;
-5. **Produto** detalha um item específico;
-6. **Suporte** concentra pós-download, bugs e ajuda.
+Estado atual:
+
+1. fornecedor de produtos digitais em processo de análise/aprovação;
+2. catálogo externo ainda não integrado;
+3. checkout e automação de entrega ainda não ativados;
+4. produtos MiojoPlays continuam independentes e podem permanecer disponíveis normalmente.
+
+## Modelo futuro de integração
+
+O desenho previsto separa as responsabilidades:
+
+1. frontend exibe catálogo e detalhes;
+2. backend privado consulta fornecedor e cria pedidos;
+3. gateway confirma pagamento por webhook;
+4. backend processa o produto no fornecedor;
+5. pedido recebe status de processamento e entrega;
+6. segredos de API permanecem apenas no backend.
 
 ## Objetivos
 
 - funcionar bem em celular;
 - carregar sem framework pesado;
-- suportar vários apps, ferramentas, packs e utilitários;
-- manter página própria para cada produto;
-- mostrar status, compatibilidade, versão, preço e entrega com clareza;
-- não depender de banco, analytics ou checkout para existir;
-- permitir evolução futura sem transformar a home em uma página única gigante.
+- suportar recargas, gift cards, assinaturas, jogos digitais e produtos próprios;
+- manter página própria para cada categoria e produto;
+- mostrar região, compatibilidade, disponibilidade, preço e entrega com clareza;
+- não inventar produtos ou denominações antes da integração real;
+- permitir evolução para checkout e entrega automática sem acoplar a interface ao fornecedor.
 
 ## Publicação
 
-A pasta `site/` é o diretório de assets estáticos servido pelo Cloudflare Worker atual. O endereço público da loja é configurado na camada de hospedagem e não deve ser acoplado a um produto específico.
+A pasta `site/` é o diretório de assets estáticos servido pelo Cloudflare Worker atual. O endereço público da loja é configurado na camada de hospedagem.
 
 ## Próximas etapas
 
-1. validar as abas separadas em deploy real e em tela mobile;
-2. evoluir a página individual de produto para uma ficha comercial completa;
-3. adicionar novos produtos nas respectivas categorias sem misturar conteúdo;
-4. conectar checkout somente depois de definir produto, preço, licença, entrega e política de reembolso;
-5. adicionar métricas apenas com política de privacidade atualizada.
+1. validar o novo posicionamento em deploy real e telas mobile;
+2. concluir aprovação de fornecedor autorizado;
+3. integrar catálogo real em ambiente de teste;
+4. definir gateway e estados do pedido;
+5. só então ativar preço, pagamento e entrega automática para produtos de revenda;
+6. atualizar termos e privacidade antes de processar compras reais.
