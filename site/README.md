@@ -4,15 +4,31 @@ Site estático mobile-first da loja digital MiojoPlays.
 
 A loja é uma plataforma de múltiplos produtos. PulseBoost é apenas um item do catálogo e não define a identidade, a navegação ou a arquitetura do site.
 
-## Arquitetura visual
+## Arquitetura de páginas
 
-A experiência é organizada em três camadas claras:
+Cada aba possui um assunto próprio. Conteúdo de uma área não deve ser despejado em outra página.
 
-1. **Interface** — topbar, navegação lateral no desktop e dock inferior no mobile.
-2. **Miolo / Store Hub** — descoberta, categorias, status do ecossistema, atalhos e destaques.
-3. **Loja / Catálogo** — busca, filtros, cards de produto e acesso às páginas comerciais.
+- `index.html` — **Início**: apresentação da marca, informações iniciais e orientação de navegação;
+- `store.html` — **Loja**: catálogo comercial geral, busca, status, preço, versão e acesso aos produtos;
+- `categorias.html` — **Categorias**: organização do catálogo e entrada para cada área;
+- `apps.html` — **Apps**: somente aplicativos e informações relacionadas a apps;
+- `ferramentas.html` — **Ferramentas**: somente utilitários, diagnóstico e ferramentas técnicas;
+- `packs.html` — **Packs / Game Kits**: somente packs, presets, perfis e conteúdo específico;
+- `suporte.html` — **Suporte**: bugs, download, compatibilidade, atualizações e políticas;
+- `pulseboost.html` — página individual de produto do PulseBoost;
+- futuras páginas `<produto>.html` — páginas independentes para cada novo produto;
+- `privacy.html` e `terms.html` — páginas legais.
 
-Isso evita que a home seja apenas uma sequência de textos e cards. O usuário entra numa interface de loja, entende o ecossistema e só então navega para a camada comercial.
+## Princípio de navegação
+
+A interface é compartilhada, mas o conteúdo é separado por contexto:
+
+1. **Início** apresenta a loja;
+2. **Loja** concentra a área comercial;
+3. **Categorias** organiza as famílias de produto;
+4. **Apps / Ferramentas / Packs** mostram apenas itens e informações daquela família;
+5. **Produto** detalha um item específico;
+6. **Suporte** concentra pós-download, bugs e ajuda.
 
 ## Objetivos
 
@@ -22,28 +38,16 @@ Isso evita que a home seja apenas uma sequência de textos e cards. O usuário e
 - manter página própria para cada produto;
 - mostrar status, compatibilidade, versão, preço e entrega com clareza;
 - não depender de banco, analytics ou checkout para existir;
-- permitir migração futura para domínio próprio sem reescrever o frontend.
-
-## Estrutura
-
-- `index.html` — Store Hub / visão geral;
-- `store.html` — camada comercial com catálogo, busca e filtros;
-- `pulseboost.html` — página do PulseBoost;
-- futuras páginas `<produto>.html` — páginas independentes dos próximos itens;
-- `privacy.html` — política inicial de privacidade;
-- `terms.html` — termos iniciais;
-- `styles.css`, `v2.css`, `shop-v4.css`, `shop-v5.css` — base visual, catálogo e shell estrutural;
-- `app.js` — menu mobile, filtros com deep links, ano e animações leves;
-- `favicon.svg` — ícone local.
+- permitir evolução futura sem transformar a home em uma página única gigante.
 
 ## Publicação
 
-A pasta `site/` é o diretório de publicação estática. O projeto Cloudflare Worker que serve a loja deve usar nome e subdomínio neutros, sem referência a um produto específico.
+A pasta `site/` é o diretório de assets estáticos servido pelo Cloudflare Worker atual. O endereço público da loja é configurado na camada de hospedagem e não deve ser acoplado a um produto específico.
 
 ## Próximas etapas
 
-1. manter a identidade visual e navegação consistentes nas páginas de produto;
-2. adicionar novos produtos como páginas independentes;
-3. separar a loja em repositório próprio quando o fluxo permitir;
+1. validar as abas separadas em deploy real e em tela mobile;
+2. evoluir a página individual de produto para uma ficha comercial completa;
+3. adicionar novos produtos nas respectivas categorias sem misturar conteúdo;
 4. conectar checkout somente depois de definir produto, preço, licença, entrega e política de reembolso;
 5. adicionar métricas apenas com política de privacidade atualizada.
