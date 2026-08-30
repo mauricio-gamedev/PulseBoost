@@ -1,1 +1,67 @@
-const menuButton=document.querySelector('.menu-btn');const nav=document.querySelector('.nav');if(menuButton&&nav){menuButton.addEventListener('click',()=>{const open=nav.classList.toggle('open');menuButton.setAttribute('aria-expanded',String(open));menuButton.textContent=open?'✕':'☰'});nav.querySelectorAll('a').forEach(link=>link.addEventListener('click',()=>{nav.classList.remove('open');menuButton.setAttribute('aria-expanded','false');menuButton.textContent='☰'}))}const year=document.querySelector('#year');if(year)year.textContent=new Date().getFullYear();const reveal=()=>{document.querySelectorAll('.reveal').forEach(el=>{const box=el.getBoundingClientRect();if(box.top<window.innerHeight-45)el.classList.add('visible')})};reveal();window.addEventListener('scroll',reveal,{passive:true});const search=document.querySelector('[data-store-search]');const filters=[...document.querySelectorAll('[data-filter]')];const products=[...document.querySelectorAll('[data-product-card]')];const params=new URLSearchParams(location.search);const requestedFilter=(params.get('categoria')||'').toLowerCase();let activeFilter=filters.some(button=>button.dataset.filter===requestedFilter)?requestedFilter:'all';function syncFilterButtons(){filters.forEach(item=>item.classList.toggle('active',(item.dataset.filter||'all')===activeFilter))}function applyCatalog(){const q=(search?.value||'').trim().toLowerCase();products.forEach(card=>{const category=(card.dataset.category||'').toLowerCase();const text=(card.textContent||'').toLowerCase();const categoryOk=activeFilter==='all'||category===activeFilter;const searchOk=!q||text.includes(q);card.classList.toggle('is-hidden',!(categoryOk&&searchOk))})}filters.forEach(button=>button.addEventListener('click',()=>{activeFilter=button.dataset.filter||'all';syncFilterButtons();applyCatalog();const url=new URL(location.href);if(activeFilter==='all')url.searchParams.delete('categoria');else url.searchParams.set('categoria',activeFilter);history.replaceState(null,'',url)}));if(search)search.addEventListener('input',applyCatalog);syncFilterButtons();applyCatalog();
+const menuButton=document.querySelector('.menu-btn');
+const nav=document.querySelector('.nav');
+if(menuButton&&nav){
+  menuButton.addEventListener('click',()=>{
+    const open=nav.classList.toggle('open');
+    menuButton.setAttribute('aria-expanded',String(open));
+    menuButton.textContent=open?'✕':'☰';
+  });
+  nav.querySelectorAll('a').forEach(link=>link.addEventListener('click',()=>{
+    nav.classList.remove('open');
+    menuButton.setAttribute('aria-expanded','false');
+    menuButton.textContent='☰';
+  }));
+}
+
+const year=document.querySelector('#year');
+if(year)year.textContent=new Date().getFullYear();
+
+const reveal=()=>{
+  document.querySelectorAll('.reveal').forEach(el=>{
+    const box=el.getBoundingClientRect();
+    if(box.top<window.innerHeight-45)el.classList.add('visible');
+  });
+};
+reveal();
+window.addEventListener('scroll',reveal,{passive:true});
+
+const search=document.querySelector('[data-store-search]');
+const filters=[...document.querySelectorAll('[data-filter]')];
+const products=[...document.querySelectorAll('[data-product-card]')];
+const emptyState=document.querySelector('[data-catalog-empty]');
+const params=new URLSearchParams(location.search);
+const requestedFilter=(params.get('categoria')||'').toLowerCase();
+let activeFilter=filters.some(button=>button.dataset.filter===requestedFilter)?requestedFilter:'all';
+
+function syncFilterButtons(){
+  filters.forEach(item=>item.classList.toggle('active',(item.dataset.filter||'all')===activeFilter));
+}
+
+function applyCatalog(){
+  const q=(search?.value||'').trim().toLowerCase();
+  let visible=0;
+  products.forEach(card=>{
+    const category=(card.dataset.category||'').toLowerCase();
+    const text=(card.textContent||'').toLowerCase();
+    const categoryOk=activeFilter==='all'||category===activeFilter;
+    const searchOk=!q||text.includes(q);
+    const show=categoryOk&&searchOk;
+    card.classList.toggle('is-hidden',!show);
+    if(show)visible+=1;
+  });
+  if(emptyState)emptyState.hidden=visible!==0;
+}
+
+filters.forEach(button=>button.addEventListener('click',()=>{
+  activeFilter=button.dataset.filter||'all';
+  syncFilterButtons();
+  applyCatalog();
+  const url=new URL(location.href);
+  if(activeFilter==='all')url.searchParams.delete('categoria');
+  else url.searchParams.set('categoria',activeFilter);
+  history.replaceState(null,'',url);
+}));
+
+if(search)search.addEventListener('input',applyCatalog);
+syncFilterButtons();
+applyCatalog();
