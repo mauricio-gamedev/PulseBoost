@@ -25,11 +25,18 @@ jobs:
           for file in \
             site/index.html \
             site/store.html \
-            site/pulseboost.html \
+            site/categorias.html \
+            site/recargas.html \
+            site/giftcards.html \
+            site/assinaturas.html \
+            site/jogos.html \
+            site/suporte.html \
             site/privacy.html \
             site/terms.html \
             site/styles.css \
             site/v2.css \
+            site/store-tabs.css \
+            site/digital-store.css \
             site/app.js \
             wrangler.jsonc; do
             test -s "$file"
