@@ -34,6 +34,8 @@ public class OverlayService extends Service {
     private SharedPreferences prefs;
     private boolean editMode = false, locked = false;
     private float opacity = .78f, scale = 1f;
+    private static final float MIN_SCALE = .45f;
+    private static final float MAX_SCALE = 2.5f;
     private static OverlayService instance;
 
     @Override public void onCreate() {
@@ -41,7 +43,7 @@ public class OverlayService extends Service {
         instance = this;
         prefs = getSharedPreferences("cloudkeys", MODE_PRIVATE);
         opacity = prefs.getFloat("opacity", .78f);
-        scale = prefs.getFloat("scale", 1f);
+        scale = clampScale(prefs.getFloat("scale", 1f));
         createNotificationChannel();
         startForeground(NOTIFICATION_ID, buildNotification());
         if (!Settings.canDrawOverlays(this)) { stopSelf(); return; }
@@ -65,7 +67,7 @@ public class OverlayService extends Service {
     }
 
     private void addKey(final String label, final int keyCode, final int index) {
-        final int size = Math.max(dp(34), (int)(dp(46) * scale));
+        final int size = buttonSize();
         final WindowManager.LayoutParams p = new WindowManager.LayoutParams(
                 size, size, WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
@@ -76,7 +78,7 @@ public class OverlayService extends Service {
 
         TextView v = new TextView(this);
         v.setText(label);
-        v.setTextSize(Math.max(11f, 14f * scale));
+        v.setTextSize(Math.max(9f, Math.min(28f, 14f * scale)));
         v.setGravity(Gravity.CENTER);
         v.setTextColor(Color.WHITE);
         v.setAlpha(opacity);
@@ -143,9 +145,9 @@ public class OverlayService extends Service {
         }); box.addView(opacityBar);
 
         TextView sz=new TextView(this); sz.setText("Tamanho"); sz.setTextColor(Color.WHITE); box.addView(sz);
-        SeekBar sizeBar=new SeekBar(this); sizeBar.setMax(150); sizeBar.setProgress((int)(scale*100));
+        SeekBar sizeBar=new SeekBar(this); sizeBar.setMax(250); sizeBar.setMin(45); sizeBar.setProgress((int)(scale*100));
         sizeBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            public void onProgressChanged(SeekBar b,int value,boolean fromUser) { scale=Math.max(.70f,Math.min(1.5f,value/100f)); resizeKeys(); prefs.edit().putFloat("scale",scale).apply(); }
+            public void onProgressChanged(SeekBar b,int value,boolean fromUser) { scale=clampScale(value/100f); resizeKeys(); prefs.edit().putFloat("scale",scale).apply(); }
             public void onStartTrackingTouch(SeekBar b){} public void onStopTrackingTouch(SeekBar b){}
         }); box.addView(sizeBar);
 
@@ -154,11 +156,22 @@ public class OverlayService extends Service {
     }
 
     private void resizeKeys() {
-        int size=Math.max(dp(34),(int)(dp(46)*scale));
-        for(int i=0;i<keyViews.size();i++){ TextView v=keyViews.get(i); WindowManager.LayoutParams p=keyParams.get(i); p.width=size;p.height=size;v.setTextSize(Math.max(11f,14f*scale));try{wm.updateViewLayout(v,p);}catch(Throwable ignored){} }
+        int size=buttonSize();
+        for(int i=0;i<keyViews.size();i++){ TextView v=keyViews.get(i); WindowManager.LayoutParams p=keyParams.get(i); p.width=size;p.height=size;v.setTextSize(Math.max(9f,Math.min(28f,14f*scale)));try{wm.updateViewLayout(v,p);}catch(Throwable ignored){} }
     }
 
-    private void removeOverlay(View v) { try{wm.removeView(v);}catch(Throwable ignored){} overlays.remove(v); }
+    private int buttonSize() {
+        return Math.max(dp(28), Math.min(dp(115), (int)(dp(46) * scale)));
+    }
+
+    private float clampScale(float value) {
+        return Math.max(MIN_SCALE, Math.min(MAX_SCALE, value));
+    }
+
+    private void removeOverlay(View v) {
+        try { wm.removeView(v); } catch(Throwable ignored) {}
+        overlays.remove(v);
+    }
 
     private GradientDrawable roundBackground() {
         GradientDrawable g=new GradientDrawable(); g.setCornerRadius(dp(10)); g.setColor(Color.argb(180,10,16,28)); g.setStroke(dp(1),Color.argb(150,90,170,255)); return g;
