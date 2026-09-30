@@ -73,8 +73,8 @@ public class OverlayService extends Service {
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
                 PixelFormat.TRANSLUCENT);
         p.gravity = Gravity.TOP | Gravity.START;
-        p.x = dp(8) + (index % 6) * (size + dp(5));
-        p.y = dp(105) + (index / 6) * (size + dp(5));
+        p.x = prefs.getInt("x_" + index, dp(8) + (index % 6) * (size + dp(5)));
+        p.y = prefs.getInt("y_" + index, dp(105) + (index / 6) * (size + dp(5)));
 
         TextView v = new TextView(this);
         v.setText(label);
@@ -98,7 +98,12 @@ public class OverlayService extends Service {
                         if (!editMode) return true;
                         float dx=e.getRawX()-downX, dy=e.getRawY()-downY;
                         if (Math.abs(dx)>dp(4) || Math.abs(dy)>dp(4)) moved=true;
-                        if (moved) { p.x=(int)(startX+dx); p.y=(int)(startY+dy); try { wm.updateViewLayout(view,p); } catch(Throwable ignored) {} }
+                        if (moved) {
+                            p.x=(int)(startX+dx);
+                            p.y=(int)(startY+dy);
+                            try { wm.updateViewLayout(view,p); } catch(Throwable ignored) {}
+                            prefs.edit().putInt("x_" + index, p.x).putInt("y_" + index, p.y).apply();
+                        }
                         return true;
                     default: return true;
                 }
@@ -129,11 +134,22 @@ public class OverlayService extends Service {
         box.setOrientation(LinearLayout.VERTICAL); box.setPadding(dp(12),dp(8),dp(12),dp(8)); box.setBackground(roundBackground());
         TextView title=new TextView(this); title.setText("CloudKeys"); title.setTextColor(Color.WHITE); title.setTextSize(18); box.addView(title);
 
-        Button edit=new Button(this); edit.setText("Editar / mover botões");
-        edit.setOnClickListener(v -> { editMode=!editMode; locked=!editMode; }); box.addView(edit);
+        Button edit=new Button(this); edit.setText(editMode ? "Concluir edição" : "Editar / mover botões");
+        edit.setOnClickListener(v -> {
+            if (locked) return;
+            editMode=!editMode;
+            edit.setText(editMode ? "Concluir edição" : "Editar / mover botões");
+        });
+        box.addView(edit);
 
         Button lock=new Button(this); lock.setText(locked ? "Desfixar botões" : "Fixar botões");
-        lock.setOnClickListener(v -> { locked=!locked; editMode=!locked; lock.setText(locked ? "Desfixar botões" : "Fixar botões"); }); box.addView(lock);
+        lock.setOnClickListener(v -> {
+            locked=!locked;
+            if (locked) editMode=false;
+            lock.setText(locked ? "Desfixar botões" : "Fixar botões");
+            edit.setText(editMode ? "Concluir edição" : "Editar / mover botões");
+        });
+        box.addView(lock);
 
         TextView op=new TextView(this); op.setText("Opacidade"); op.setTextColor(Color.WHITE); box.addView(op);
         SeekBar opacityBar=new SeekBar(this); opacityBar.setMax(100); opacityBar.setProgress((int)(opacity*100));
