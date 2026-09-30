@@ -5,7 +5,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ShizukuInputService extends IKeyInjector.Stub {
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    // Two workers keep simultaneous taps responsive without spawning an unbounded
+    // number of shell processes on low-RAM devices.
+    private final ExecutorService executor = Executors.newFixedThreadPool(2);
 
     @Override
     public void sendKey(int keyCode) {
@@ -13,31 +15,30 @@ public class ShizukuInputService extends IKeyInjector.Stub {
             throw new IllegalArgumentException("Invalid Android key code: " + keyCode);
         }
 
-        executor.execute(() -> {
-            Process process = null;
-            try {
-                process = new ProcessBuilder(
-                        "/system/bin/input",
-                        "keyevent",
-                        String.valueOf(keyCode)
-                ).redirectErrorStream(true).start();
+        executor.execute(() -> inject(keyCode));
+    }
 
-                try (InputStream input = process.getInputStream()) {
-                    byte[] buffer = new byte[512];
-                    while (input.read(buffer) != -1) {
-                        // Drain output so the process cannot block on its pipe.
-                    }
-                }
+    private void inject(int keyCode) {
+        Process process = null;
+        try {
+            process = new ProcessBuilder(
+                    "/system/bin/input",
+                    "keyevent",
+                    String.valueOf(keyCode)
+            ).redirectErrorStream(true).start();
 
-                process.waitFor();
-            } catch (Throwable ignored) {
-                // MVP intentionally fails silently; a later build will expose status.
-            } finally {
-                if (process != null) {
-                    process.destroy();
+            try (InputStream input = process.getInputStream()) {
+                byte[] buffer = new byte[256];
+                while (input.read(buffer) != -1) {
+                    // Drain output so the process cannot block on its pipe.
                 }
             }
-        });
+            process.waitFor();
+        } catch (Throwable ignored) {
+            // Keep the overlay alive if a single injection fails.
+        } finally {
+            if (process != null) process.destroy();
+        }
     }
 
     @Override
