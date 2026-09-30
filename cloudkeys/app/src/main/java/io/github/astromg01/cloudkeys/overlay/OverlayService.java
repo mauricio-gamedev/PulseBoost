@@ -24,8 +24,11 @@ public class OverlayService extends Service {
 
     private static OverlayService instance;
     private WindowManager windowManager;
-    private TextView button;
+    private final java.util.List<TextView> keyViews = new java.util.ArrayList<>();
+    private final java.util.List<WindowManager.LayoutParams> keyParams = new java.util.ArrayList<>();
     private ShizukuKeyInjector injector;
+    private boolean editMode=false, locked=false;
+    private float opacity=.78f, scale=1f;
 
     public static void injectKeyFromActivity(int keyCode) {
         OverlayService current = instance;
@@ -49,7 +52,8 @@ public class OverlayService extends Service {
         }
 
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
-        addInventoryButton();
+        addKeyboard();
+    addEditorButton();
     }
 
     private void addInventoryButton() {
@@ -160,13 +164,8 @@ public class OverlayService extends Service {
 
     @Override
     public void onDestroy() {
-        if (button != null && windowManager != null) {
-            try {
-                windowManager.removeView(button);
-            } catch (Throwable ignored) {
-            }
-        }
-        button = null;
+        for(TextView v:keyViews)try{wm.removeView(v);}catch(Throwable ignored){}
+        keyViews.clear(); keyParams.clear();
 
         if (injector != null) {
             injector.close();
