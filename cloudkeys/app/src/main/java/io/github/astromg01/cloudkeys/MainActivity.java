@@ -51,18 +51,34 @@ public class MainActivity extends Activity {
         shizuku.setOnClickListener(v -> requestShizuku());
 
         Button overlay = new Button(this);
-        overlay.setText("2. Ativar overlay [ I ]");
+        overlay.setText("2. Ativar overlay");
         overlay.setOnClickListener(v -> startOverlay());
 
+        Button stop = new Button(this);
+        stop.setText("3. Parar overlay");
+        stop.setOnClickListener(v -> stopOverlay());
+
         Button test = new Button(this);
-        test.setText("3. Testar tecla I");
-        test.setOnClickListener(v -> OverlayService.injectKeyFromActivity(37));
+        test.setText("4. Testar tecla I");
+        test.setOnClickListener(v -> {
+            if (!hasShizukuPermission()) {
+                Toast.makeText(
+                        this,
+                        "Autorize o CloudKeys no Shizuku primeiro.",
+                        Toast.LENGTH_SHORT
+                ).show();
+                return;
+            }
+            OverlayService.injectKeyFromActivity(37);
+            Toast.makeText(this, "Tecla I enviada.", Toast.LENGTH_SHORT).show();
+        });
 
         root.addView(title);
         root.addView(subtitle);
         root.addView(status);
         root.addView(shizuku);
         root.addView(overlay);
+        root.addView(stop);
         root.addView(test);
 
         setContentView(root);
@@ -72,19 +88,30 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (status != null) updateStatus();
+        if (status != null) {
+            updateStatus();
+        }
     }
 
     private void requestShizuku() {
         if (!Shizuku.pingBinder()) {
-            Toast.makeText(this, "Abra o Shizuku e inicie o serviço.", Toast.LENGTH_LONG).show();
+            Toast.makeText(
+                    this,
+                    "Abra o Shizuku e inicie o serviço.",
+                    Toast.LENGTH_LONG
+            ).show();
             return;
         }
 
-        if (Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
+        if (Shizuku.checkSelfPermission()
+                != PackageManager.PERMISSION_GRANTED) {
             Shizuku.requestPermission(SHIZUKU_REQUEST);
         } else {
-            Toast.makeText(this, "CloudKeys já está autorizado.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(
+                    this,
+                    "CloudKeys já está autorizado.",
+                    Toast.LENGTH_SHORT
+            ).show();
         }
         updateStatus();
     }
@@ -99,17 +126,41 @@ public class MainActivity extends Activity {
         }
 
         if (!hasShizukuPermission()) {
-            Toast.makeText(this, "Autorize o CloudKeys no Shizuku.", Toast.LENGTH_LONG).show();
+            Toast.makeText(
+                    this,
+                    "Autorize o CloudKeys no Shizuku.",
+                    Toast.LENGTH_LONG
+            ).show();
             return;
         }
 
-        startForegroundService(new Intent(this, OverlayService.class));
-        Toast.makeText(this, "Overlay ativo.", Toast.LENGTH_SHORT).show();
+        try {
+            startForegroundService(
+                    new Intent(this, OverlayService.class)
+            );
+            Toast.makeText(
+                    this,
+                    "Overlay ativo.",
+                    Toast.LENGTH_SHORT
+            ).show();
+        } catch (Throwable t) {
+            Toast.makeText(
+                    this,
+                    "Não foi possível iniciar o overlay.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
+    }
+
+    private void stopOverlay() {
+        stopService(new Intent(this, OverlayService.class));
+        Toast.makeText(this, "Overlay parado.", Toast.LENGTH_SHORT).show();
     }
 
     private boolean hasShizukuPermission() {
         return Shizuku.pingBinder()
-                && Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED;
+                && Shizuku.checkSelfPermission()
+                == PackageManager.PERMISSION_GRANTED;
     }
 
     private void updateStatus() {
@@ -126,7 +177,11 @@ public class MainActivity extends Activity {
                 ? "Overlay: permitido"
                 : "Overlay: precisa de permissão";
 
-        status.setText(shizukuState + "\n" + overlayState
-                + "\n\nMVP-0: botão [ I ] para teste no GeForce NOW.");
+        status.setText(
+                shizukuState
+                        + "\n"
+                        + overlayState
+                        + "\n\nCloudKeys MVP-1: atalhos + editor + tamanho + posição."
+        );
     }
 }
