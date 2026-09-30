@@ -51,6 +51,13 @@ public class OverlayService extends Service {
         addEditorButton();
     }
 
+    public static void injectKeyFromActivity(int keyCode) {
+        OverlayService service = instance;
+        if (service != null && service.injector != null) {
+            service.injector.sendKey(keyCode);
+        }
+    }
+
     private void addKeyboard() {
         String[] labels = {"ESC","I","M","TAB","ENTER","SPACE","1","2","3","4","5","Q","W","E","R","A","S","D","F","G","Z","X","C","V"};
         int[] codes = {111,37,41,61,66,62,8,9,10,11,12,45,51,33,46,29,47,32,34,35,54,52,31,50};
