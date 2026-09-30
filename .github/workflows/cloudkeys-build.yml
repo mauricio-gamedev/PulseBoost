@@ -1,6 +1,7 @@
 name: CloudKeys MVP build
 
 on:
+  pull_request:
   push:
     branches:
       - cloudkeys-mvp-0
