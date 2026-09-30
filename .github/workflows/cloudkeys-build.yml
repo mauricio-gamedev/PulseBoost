@@ -25,6 +25,8 @@ jobs:
 
       - name: Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
 
       - name: Install SDK packages
         run: |
@@ -45,3 +47,4 @@ jobs:
         with:
           name: CloudKeys-MVP0-debug
           path: cloudkeys/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
