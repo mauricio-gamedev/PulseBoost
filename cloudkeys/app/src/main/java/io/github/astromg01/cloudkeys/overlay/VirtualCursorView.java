@@ -115,9 +115,11 @@ public final class VirtualCursorView extends View {
 
             case MotionEvent.ACTION_UP:
                 if (!moved && params != null) {
+                    int[] location = new int[2];
+                    getLocationOnScreen(location);
                     listener.onClick(
-                            params.x + getWidth() / 2,
-                            params.y + getHeight() / 2
+                            location[0] + getWidth() / 2,
+                            location[1] + getHeight() / 2
                     );
                 }
                 performClick();
