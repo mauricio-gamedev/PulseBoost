@@ -30,7 +30,9 @@ public final class ShizukuKeyInjector implements AutoCloseable {
         )
                 .daemon(false)
                 .debuggable(false)
-                .version(4)
+                // Bump the user-service version after changing the AIDL so
+                // Shizuku replaces an older cached service process.
+                .version(5)
                 .tag("cloudkeys-input")
                 .processNameSuffix("input");
         connect();
@@ -57,6 +59,21 @@ public final class ShizukuKeyInjector implements AutoCloseable {
 
         try {
             current.sendKey(keyCode);
+        } catch (Throwable ignored) {
+            remote = null;
+        }
+    }
+
+    public void sendTap(int x, int y) {
+        IKeyInjector current = remote;
+        if (current == null) {
+            connect();
+            current = remote;
+        }
+        if (current == null) return;
+
+        try {
+            current.sendTap(x, y);
         } catch (Throwable ignored) {
             remote = null;
         }
