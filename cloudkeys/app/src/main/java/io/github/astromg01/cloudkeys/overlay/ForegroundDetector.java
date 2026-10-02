@@ -8,7 +8,9 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.os.Build;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
+import android.os.Process;
 
 import java.util.List;
 
@@ -17,13 +19,21 @@ public final class ForegroundDetector {
         void onForegroundPackageChanged(String packageName);
     }
 
-    private static final long POLL_MS = 900L;
+    private static final long POLL_MS = 1000L;
     private static final long EVENT_WINDOW_MS = 5000L;
 
     private final Context context;
     private final String ignoredPackage;
     private final Listener listener;
-    private final Handler handler = new Handler(Looper.getMainLooper());
+
+    private final Handler mainHandler =
+            new Handler(Looper.getMainLooper());
+    private final HandlerThread workerThread =
+            new HandlerThread(
+                    "CloudKeysDetector",
+                    Process.THREAD_PRIORITY_BACKGROUND
+            );
+    private Handler workerHandler;
 
     private boolean running;
     private String lastPackage;
@@ -37,10 +47,14 @@ public final class ForegroundDetector {
             if (packageName != null
                     && !packageName.equals(lastPackage)) {
                 lastPackage = packageName;
-                listener.onForegroundPackageChanged(packageName);
+                mainHandler.post(
+                        () -> listener.onForegroundPackageChanged(
+                                packageName
+                        )
+                );
             }
 
-            handler.postDelayed(this, POLL_MS);
+            workerHandler.postDelayed(this, POLL_MS);
         }
     };
 
@@ -56,18 +70,32 @@ public final class ForegroundDetector {
 
     public void start() {
         if (running) return;
+
         running = true;
-        handler.post(poller);
+        workerThread.start();
+        workerHandler = new Handler(
+                workerThread.getLooper()
+        );
+        workerHandler.post(poller);
     }
 
     public void stop() {
         running = false;
-        handler.removeCallbacks(poller);
+
+        if (workerHandler != null) {
+            workerHandler.removeCallbacks(poller);
+        }
+
+        if (workerThread.isAlive()) {
+            workerThread.quitSafely();
+        }
     }
 
     public static boolean hasUsageAccess(Context context) {
         AppOpsManager appOps =
-                (AppOpsManager) context.getSystemService(Context.APP_OPS_SERVICE);
+                (AppOpsManager) context.getSystemService(
+                        Context.APP_OPS_SERVICE
+                );
 
         if (appOps == null) return false;
 
@@ -95,8 +123,9 @@ public final class ForegroundDetector {
         long now = System.currentTimeMillis();
         long begin = now - EVENT_WINDOW_MS;
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            String fromEvents = queryEvents(manager, begin, now);
+        if (Build.VERSION.SDK_INT >= 21) {
+            String fromEvents =
+                    queryEvents(manager, begin, now);
             if (fromEvents != null) return fromEvents;
         }
 
@@ -108,10 +137,13 @@ public final class ForegroundDetector {
             long begin,
             long end
     ) {
-        UsageEvents events = manager.queryEvents(begin, end);
+        UsageEvents events =
+                manager.queryEvents(begin, end);
         if (events == null) return null;
 
-        UsageEvents.Event event = new UsageEvents.Event();
+        UsageEvents.Event event =
+                new UsageEvents.Event();
+
         String newest = null;
         long newestTime = -1L;
 
@@ -120,14 +152,20 @@ public final class ForegroundDetector {
 
             int type = event.getEventType();
             boolean foreground;
+
             if (Build.VERSION.SDK_INT >= 29) {
-                foreground = type == UsageEvents.Event.ACTIVITY_RESUMED
-                        || type == UsageEvents.Event.MOVE_TO_FOREGROUND;
+                foreground =
+                        type == UsageEvents.Event.ACTIVITY_RESUMED
+                                || type
+                                == UsageEvents.Event.MOVE_TO_FOREGROUND;
             } else {
-                foreground = type == UsageEvents.Event.MOVE_TO_FOREGROUND;
+                foreground =
+                        type
+                                == UsageEvents.Event.MOVE_TO_FOREGROUND;
             }
 
-            if (!foreground || event.getTimeStamp() < newestTime) {
+            if (!foreground
+                    || event.getTimeStamp() < newestTime) {
                 continue;
             }
 
@@ -146,20 +184,25 @@ public final class ForegroundDetector {
             long begin,
             long end
     ) {
-        List<UsageStats> stats = manager.queryUsageStats(
-                UsageStatsManager.INTERVAL_DAILY,
-                begin,
-                end
-        );
+        List<UsageStats> stats =
+                manager.queryUsageStats(
+                        UsageStatsManager.INTERVAL_DAILY,
+                        begin,
+                        end
+                );
 
-        if (stats == null || stats.isEmpty()) return null;
+        if (stats == null || stats.isEmpty()) {
+            return null;
+        }
 
         String newest = null;
         long newestTime = -1L;
 
         for (UsageStats stat : stats) {
             String packageName = stat.getPackageName();
-            if (!isEligiblePackage(packageName)) continue;
+            if (!isEligiblePackage(packageName)) {
+                continue;
+            }
 
             long used = stat.getLastTimeUsed();
             if (used < begin) continue;
@@ -174,18 +217,25 @@ public final class ForegroundDetector {
     }
 
     private boolean isEligiblePackage(String packageName) {
-        if (packageName == null || packageName.equals(ignoredPackage)) {
+        if (packageName == null
+                || packageName.equals(ignoredPackage)) {
             return false;
         }
 
         try {
-            ApplicationInfo info = context.getPackageManager()
-                    .getApplicationInfo(packageName, 0);
+            ApplicationInfo info =
+                    context.getPackageManager()
+                            .getApplicationInfo(
+                                    packageName,
+                                    0
+                            );
 
-            // Ignore Android/system packages. The overlay remains universal:
-            // any normal third-party Android app can become the active profile.
-            return (info.flags & ApplicationInfo.FLAG_SYSTEM) == 0
-                    && (info.flags & ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) == 0;
+            // Ignore Android/system packages. Any normal third-party
+            // game or app can become the active CloudKeys profile.
+            return (info.flags
+                    & ApplicationInfo.FLAG_SYSTEM) == 0
+                    && (info.flags
+                    & ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) == 0;
         } catch (Throwable ignored) {
             return false;
         }
