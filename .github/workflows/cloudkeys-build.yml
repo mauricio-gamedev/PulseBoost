@@ -2,6 +2,12 @@ name: CloudKeys build
 
 on:
   pull_request:
+  push:
+    branches:
+      - cloudkeys-mvp-0
+    paths:
+      - "cloudkeys/**"
+      - ".github/workflows/cloudkeys-build.yml"
   workflow_dispatch:
 
 jobs:
