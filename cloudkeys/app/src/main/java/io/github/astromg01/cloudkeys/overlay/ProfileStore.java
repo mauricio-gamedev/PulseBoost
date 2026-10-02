@@ -3,7 +3,7 @@ package io.github.astromg01.cloudkeys.overlay;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-public final class ProfileStore {
+// Per-package state is opt-in through edits; untouched games stay on the global defaults.\npublic final class ProfileStore {
     private static final String PREFS = "cloudkeys_profiles";
 
     private final SharedPreferences prefs;
