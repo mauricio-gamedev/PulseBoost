@@ -36,7 +36,8 @@ public final class VirtualCursorView extends View {
         this.speed = speed;
         this.listener = listener;
 
-        setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        // Keep the cursor tiny and let the overlay window use Android's
+        // normal rendering path; no extra hardware layer is allocated.
         setAlpha(opacity);
         setClickable(true);
         setFocusable(false);
