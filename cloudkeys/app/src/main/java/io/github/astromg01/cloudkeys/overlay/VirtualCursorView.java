@@ -3,7 +3,6 @@ package io.github.astromg01.cloudkeys.overlay;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Typeface;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -21,12 +20,13 @@ public final class VirtualCursorView extends View {
 
     private WindowManager.LayoutParams params;
     private float speed = 1f;
+    private float lastRawX;
+    private float lastRawY;
     private boolean moved;
 
     public VirtualCursorView(
             Context context,
             WindowManager.LayoutParams params,
-            float size,
             float opacity,
             float speed,
             Listener listener
@@ -57,17 +57,6 @@ public final class VirtualCursorView extends View {
         this.speed = Math.max(.35f, Math.min(3f, speed));
     }
 
-    public void setCursorSize(float sizeDp) {
-        int px = dp(Math.round(Math.max(24f, Math.min(72f, sizeDp))));
-        getLayoutParams().width = px;
-        getLayoutParams().height = px;
-        requestLayout();
-    }
-
-    public float getSpeed() {
-        return speed;
-    }
-
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -79,12 +68,21 @@ public final class VirtualCursorView extends View {
         canvas.drawCircle(cx, cy, radius, ringPaint);
         canvas.drawCircle(cx, cy, Math.max(2f, radius * .22f), corePaint);
 
-        ringPaint.setTypeface(Typeface.DEFAULT);
         float tick = Math.max(4f, radius * .50f);
-        canvas.drawLine(cx, cy - radius - tick * .15f,
-                cx, cy - radius + tick, ringPaint);
-        canvas.drawLine(cx - radius - tick * .15f, cy,
-                cx - radius + tick, cy, ringPaint);
+        canvas.drawLine(
+                cx,
+                cy - radius - tick * .15f,
+                cx,
+                cy - radius + tick,
+                ringPaint
+        );
+        canvas.drawLine(
+                cx - radius - tick * .15f,
+                cy,
+                cx - radius + tick,
+                cy,
+                ringPaint
+        );
     }
 
     @Override
@@ -92,22 +90,26 @@ public final class VirtualCursorView extends View {
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
                 moved = false;
+                lastRawX = event.getRawX();
+                lastRawY = event.getRawY();
                 return true;
 
             case MotionEvent.ACTION_MOVE:
-                if (event.getHistorySize() == 0) return true;
-                float dx = event.getX() - event.getHistoricalX(0, 0);
-                float dy = event.getY() - event.getHistoricalY(0, 0);
+                float dx = event.getRawX() - lastRawX;
+                float dy = event.getRawY() - lastRawY;
 
-                if (Math.abs(dx) > 0.5f || Math.abs(dy) > 0.5f) {
+                if (Math.abs(dx) > 0.2f || Math.abs(dy) > 0.2f) {
                     moved = true;
                 }
 
-                if (moved && params != null) {
+                if (params != null && moved) {
                     params.x += Math.round(dx * speed);
                     params.y += Math.round(dy * speed);
                     listener.onMove(params.x, params.y);
                 }
+
+                lastRawX = event.getRawX();
+                lastRawY = event.getRawY();
                 return true;
 
             case MotionEvent.ACTION_UP:
