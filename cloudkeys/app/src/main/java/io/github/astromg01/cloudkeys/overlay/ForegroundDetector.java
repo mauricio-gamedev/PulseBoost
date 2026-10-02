@@ -36,6 +36,7 @@ public final class ForegroundDetector {
     private Handler workerHandler;
 
     private boolean running;
+    private boolean workerStarted;
     private String lastPackage;
 
     private final Runnable poller = new Runnable() {
@@ -72,10 +73,17 @@ public final class ForegroundDetector {
         if (running) return;
 
         running = true;
-        workerThread.start();
-        workerHandler = new Handler(
-                workerThread.getLooper()
-        );
+
+        if (!workerStarted) {
+            workerThread.start();
+            workerStarted = true;
+        }
+
+        if (workerHandler == null) {
+            workerHandler = new Handler(
+                    workerThread.getLooper()
+            );
+        }
         workerHandler.post(poller);
     }
 
@@ -86,7 +94,16 @@ public final class ForegroundDetector {
             workerHandler.removeCallbacks(poller);
         }
 
-        if (workerThread.isAlive()) {
+    }
+
+    public void shutdown() {
+        running = false;
+
+        if (workerHandler != null) {
+            workerHandler.removeCallbacks(poller);
+        }
+
+        if (workerStarted && workerThread.isAlive()) {
             workerThread.quitSafely();
         }
     }
