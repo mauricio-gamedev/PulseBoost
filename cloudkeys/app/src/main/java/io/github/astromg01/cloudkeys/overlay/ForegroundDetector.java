@@ -162,6 +162,8 @@ public final class ForegroundDetector {
             if (!isEligiblePackage(packageName)) continue;
 
             long used = stat.getLastTimeUsed();
+            if (used < begin) continue;
+
             if (used > newestTime) {
                 newestTime = used;
                 newest = packageName;
