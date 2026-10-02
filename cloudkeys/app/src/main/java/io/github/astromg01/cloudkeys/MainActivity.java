@@ -13,6 +13,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import io.github.astromg01.cloudkeys.overlay.ForegroundDetector;
 import io.github.astromg01.cloudkeys.overlay.OverlayService;
 import rikka.shizuku.Shizuku;
 
@@ -37,29 +38,49 @@ public class MainActivity extends Activity {
         title.setTextColor(Color.WHITE);
 
         TextView subtitle = new TextView(this);
-        subtitle.setText("PC shortcuts. Touch overlay. Cloud gaming.");
+        subtitle.setText(
+                "Overlay universal para jogos Android."
+        );
         subtitle.setTextSize(15f);
-        subtitle.setTextColor(Color.rgb(155, 166, 190));
+        subtitle.setTextColor(
+                Color.rgb(155, 166, 190)
+        );
 
         status = new TextView(this);
         status.setTextSize(14f);
-        status.setTextColor(Color.rgb(155, 166, 190));
+        status.setTextColor(
+                Color.rgb(155, 166, 190)
+        );
         status.setPadding(0, 28, 0, 18);
 
         Button shizuku = new Button(this);
         shizuku.setText("1. Autorizar Shizuku");
-        shizuku.setOnClickListener(v -> requestShizuku());
+        shizuku.setOnClickListener(
+                v -> requestShizuku()
+        );
+
+        Button usage = new Button(this);
+        usage.setText(
+                "2. Permitir detecção automática"
+        );
+        usage.setOnClickListener(
+                v -> openUsageAccess()
+        );
 
         Button overlay = new Button(this);
-        overlay.setText("2. Ativar overlay");
-        overlay.setOnClickListener(v -> startOverlay());
+        overlay.setText("3. Ativar overlay");
+        overlay.setOnClickListener(
+                v -> startOverlay()
+        );
 
         Button stop = new Button(this);
-        stop.setText("3. Parar overlay");
-        stop.setOnClickListener(v -> stopOverlay());
+        stop.setText("4. Parar overlay");
+        stop.setOnClickListener(
+                v -> stopOverlay()
+        );
 
         Button test = new Button(this);
-        test.setText("4. Testar tecla I");
+        test.setText("5. Testar tecla I");
         test.setOnClickListener(v -> {
             if (!hasShizukuPermission()) {
                 Toast.makeText(
@@ -69,14 +90,20 @@ public class MainActivity extends Activity {
                 ).show();
                 return;
             }
+
             OverlayService.injectKeyFromActivity(37);
-            Toast.makeText(this, "Tecla I enviada.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(
+                    this,
+                    "Tecla I enviada.",
+                    Toast.LENGTH_SHORT
+            ).show();
         });
 
         root.addView(title);
         root.addView(subtitle);
         root.addView(status);
         root.addView(shizuku);
+        root.addView(usage);
         root.addView(overlay);
         root.addView(stop);
         root.addView(test);
@@ -105,7 +132,9 @@ public class MainActivity extends Activity {
 
         if (Shizuku.checkSelfPermission()
                 != PackageManager.PERMISSION_GRANTED) {
-            Shizuku.requestPermission(SHIZUKU_REQUEST);
+            Shizuku.requestPermission(
+                    SHIZUKU_REQUEST
+            );
         } else {
             Toast.makeText(
                     this,
@@ -113,15 +142,46 @@ public class MainActivity extends Activity {
                     Toast.LENGTH_SHORT
             ).show();
         }
+
         updateStatus();
+    }
+
+    private void openUsageAccess() {
+        if (ForegroundDetector.hasUsageAccess(this)) {
+            Toast.makeText(
+                    this,
+                    "Detecção automática já está permitida.",
+                    Toast.LENGTH_SHORT
+            ).show();
+            return;
+        }
+
+        try {
+            startActivity(
+                    new Intent(
+                            Settings.ACTION_USAGE_ACCESS_SETTINGS
+                    )
+            );
+        } catch (Throwable ignored) {
+            Toast.makeText(
+                    this,
+                    "Não foi possível abrir o acesso de uso.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
     }
 
     private void startOverlay() {
         if (!Settings.canDrawOverlays(this)) {
-            startActivity(new Intent(
-                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    Uri.parse("package:" + getPackageName())
-            ));
+            startActivity(
+                    new Intent(
+                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                            Uri.parse(
+                                    "package:"
+                                            + getPackageName()
+                            )
+                    )
+            );
             return;
         }
 
@@ -136,11 +196,14 @@ public class MainActivity extends Activity {
 
         try {
             startForegroundService(
-                    new Intent(this, OverlayService.class)
+                    new Intent(
+                            this,
+                            OverlayService.class
+                    )
             );
             Toast.makeText(
                     this,
-                    "Overlay ativo.",
+                    "Overlay universal ativo.",
                     Toast.LENGTH_SHORT
             ).show();
         } catch (Throwable t) {
@@ -153,8 +216,17 @@ public class MainActivity extends Activity {
     }
 
     private void stopOverlay() {
-        stopService(new Intent(this, OverlayService.class));
-        Toast.makeText(this, "Overlay parado.", Toast.LENGTH_SHORT).show();
+        stopService(
+                new Intent(
+                        this,
+                        OverlayService.class
+                )
+        );
+        Toast.makeText(
+                this,
+                "Overlay parado.",
+                Toast.LENGTH_SHORT
+        ).show();
     }
 
     private boolean hasShizukuPermission() {
@@ -168,20 +240,31 @@ public class MainActivity extends Activity {
         if (!Shizuku.pingBinder()) {
             shizukuState = "Shizuku: não conectado";
         } else if (!hasShizukuPermission()) {
-            shizukuState = "Shizuku: conectado, sem autorização";
+            shizukuState =
+                    "Shizuku: conectado, sem autorização";
         } else {
             shizukuState = "Shizuku: autorizado";
         }
 
-        String overlayState = Settings.canDrawOverlays(this)
-                ? "Overlay: permitido"
-                : "Overlay: precisa de permissão";
+        String overlayState =
+                Settings.canDrawOverlays(this)
+                        ? "Overlay: permitido"
+                        : "Overlay: precisa de permissão";
+
+        String usageState =
+                ForegroundDetector.hasUsageAccess(this)
+                        ? "Detecção automática: permitida"
+                        : "Detecção automática: precisa de acesso";
 
         status.setText(
                 shizukuState
                         + "\n"
                         + overlayState
-                        + "\n\nCloudKeys MVP-1: atalhos + editor + tamanho + posição."
+                        + "\n"
+                        + usageState
+                        + "\n\n"
+                        + "CloudKeys V2: perfil universal por app "
+                        + "+ cursor virtual."
         );
     }
 }
