@@ -1350,7 +1350,7 @@ public class OverlayService extends Service {
         saveCurrentProfile();
 
         if (detector != null) {
-            detector.stop();
+            detector.shutdown();
             detector = null;
         }
 
